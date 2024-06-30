@@ -1,10 +1,21 @@
 #include <iostream>
+#include <string>
 #include "tree.h"
 #include "matcher.h"
 
-int main(int argc, char** argv) {
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-    system("chcp 65001"); // set console code page to UTF-8
+void setUTF8Console() {
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+#endif
+}
+
+int main(int argc, char** argv) {
+    setUTF8Console();
 
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0] << " <directory_path> <search_pattern>" << std::endl;
@@ -18,19 +29,20 @@ int main(int argc, char** argv) {
     std::cout << "Directory path: " << directoryPath << std::endl;
     std::cout << "Search pattern: " << searchPattern << std::endl;
 
-    FileTree tree;
-    tree.addNode(directoryPath);
+    try {
+        FileTree tree;
+        tree.addNode(directoryPath);
 
-    std::cout << "Searching for pattern..." << std::endl;
-    std::vector<std::string> results = tree.search(searchPattern);
-    std::cout << "Search completed. " << results.size() << " matches found." << std::endl;
+        std::cout << "Searching for pattern..." << std::endl;
+        std::vector<std::string> results = tree.search(searchPattern);
+        std::cout << "Search completed. " << results.size() << " matches found." << std::endl;
 
-    for (const auto& file : results) {
-        if (Matcher::match(file, searchPattern)) {
+        for (const auto& file : results) {
             std::cout << "Match found: " << file << std::endl;
-        } else {
-            std::cout << "False positive match: " << file << std::endl;
         }
+    } catch (const std::exception& e) {
+        std::cerr << "An error occurred: " << e.what() << std::endl;
+        return 1;
     }
 
     std::cout << "Exited." << std::endl;
